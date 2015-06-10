@@ -1,19 +1,17 @@
-self: play -> elasticsearch 0.6.2-eXo
+self: play -> elasticsearch 0.6.4
 
 # Application dependencies
 
 require:
     - play
     - play -> crud
-    - org.elasticsearch -> elasticsearch 1.4.2:
-        exclude:
-            - org.ow2.asm -> * 
+    - org.elasticsearch -> elasticsearch 1.6.0
     - se.scalablesolutions.akka -> akka-amqp 1.1.2
     
     
 repositories:
     - akka:
         type: iBiblio
-        root: "http://repo.typesafe.com/typesafe/akka-releases-cache/"
+        root: "http://repo.akka.io/releases/"
         contains:
             - se.scalablesolutions.akka -> *
