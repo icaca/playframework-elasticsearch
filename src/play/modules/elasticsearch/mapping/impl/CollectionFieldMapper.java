@@ -8,8 +8,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
+import play.Logger;
 import play.modules.elasticsearch.annotations.ElasticSearchEmbedded;
 import play.modules.elasticsearch.mapping.FieldMapper;
 import play.modules.elasticsearch.mapping.MapperFactory;
@@ -20,8 +22,7 @@ import play.modules.elasticsearch.util.ReflectionUtil;
 /**
  * Field mapper for collection type; maps to array by default
  * 
- * @param <M>
- *            the generic model type which owns this field
+ * @param <M> the generic model type which owns this field
  */
 public class CollectionFieldMapper<M> extends AbstractFieldMapper<M> {
 
@@ -54,6 +55,7 @@ public class CollectionFieldMapper<M> extends AbstractFieldMapper<M> {
 		} else {
 			fields = null;
 		}
+		
 	}
 
 	private Class<?> getCollectionType() {
@@ -78,6 +80,8 @@ public class CollectionFieldMapper<M> extends AbstractFieldMapper<M> {
 			// Flat mode (array of primitives)
 			MappingUtil.addField(builder, indexFieldName, type, meta);
 		}
+
+		Logger.debug("addToMapping %s", Strings.toString(builder));
 	}
 
 	@Override
@@ -112,6 +116,8 @@ public class CollectionFieldMapper<M> extends AbstractFieldMapper<M> {
 			}
 
 			builder.endArray();
+			Logger.debug("addToMapping %s", Strings.toString(builder));
+
 		}
 	}
 

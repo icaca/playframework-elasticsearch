@@ -39,8 +39,8 @@ public class SimpleFieldMapper<M> extends AbstractFieldMapper<M> {
 			try {
 				builder.field(field, value);
 			} catch (Exception e) {
-				Logger.info("exception %s %s", field, value);
-				// TODO: handle exception
+				Logger.info("exception %s %s", field, value.toString());
+				//e.printStackTrace();
 			}
 		}
 	}

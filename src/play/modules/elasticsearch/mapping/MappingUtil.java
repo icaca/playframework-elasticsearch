@@ -77,7 +77,7 @@ public abstract class MappingUtil {
 		builder.startObject();
 		mapper.addSettings(builder);
 		builder.endObject();
-		Logger.info("getSettingsMapper %s", Strings.toString(builder));
+		//Logger.info("getSettingsMapper %s", Strings.toString(builder));
 		return builder;
 	}
 

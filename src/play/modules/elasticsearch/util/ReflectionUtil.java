@@ -117,11 +117,11 @@ public abstract class ReflectionUtil {
 	 */
 	public static Object getFieldValue(Object object, Field field) {
 		field.setAccessible(true);
-		String fieldName = field.getName();
+		//String fieldName = field.getName();
 		//String methodName =  Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
 		try {
-			
-			return object.getClass().getDeclaredField(fieldName).get(object);//.invoke(object);
+			return field.get(object);
+			//return object.getClass().getDeclaredField(fieldName).get(object);//.invoke(object);
 		}  catch (Exception e) {
 			Logger.warn(ExceptionUtil.getStackTrace(e));
 			// throw new RuntimeException( e );

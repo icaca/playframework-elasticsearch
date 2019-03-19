@@ -12,9 +12,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
-import com.google.gson.Gson;
-
-import play.Logger;
 import play.db.Model;
 import play.modules.elasticsearch.annotations.ElasticSearchIgnore;
 import play.modules.elasticsearch.annotations.ElasticSearchTtl;
@@ -208,6 +205,8 @@ public class PlayModelMapper<M extends Model> implements ModelMapper<M> {
 
 	@Override
 	public void addModel(M model, XContentBuilder builder) throws IOException {
+
+	 
 		builder.startObject();
 
 		for (FieldMapper<M> field : mapping) {
@@ -215,6 +214,7 @@ public class PlayModelMapper<M extends Model> implements ModelMapper<M> {
 		}
 
 		builder.endObject();
+		// Logger.info("%s", new Gson().toJson(builder));
 	}
 
 	@Override
