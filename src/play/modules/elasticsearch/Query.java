@@ -7,7 +7,8 @@ import org.apache.commons.lang.Validate;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.search.facet.FacetBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
@@ -22,14 +23,13 @@ import play.modules.elasticsearch.transformer.SimpleTransformer;
 /**
  * An elastic search query
  * 
- * @param <T>
- *            the generic model to search for
+ * @param <T> the generic model to search for
  */
 public class Query<T extends Model> {
 
 	private final Class<T> clazz;
 	private final QueryBuilder builder;
-	private final List<FacetBuilder> facets;
+	private final List<AggregationBuilder> aggrs;
 	private final List<SortBuilder> sorts;
 
 	private int from = -1;
@@ -43,15 +43,14 @@ public class Query<T extends Model> {
 		Validate.notNull(builder, "builder cannot be null");
 		this.clazz = clazz;
 		this.builder = builder;
-		this.facets = new ArrayList<FacetBuilder>();
+		this.aggrs = new ArrayList<AggregationBuilder>();
 		this.sorts = new ArrayList<SortBuilder>();
 	}
 
 	/**
 	 * Sets from
 	 * 
-	 * @param from
-	 *            record index to start from
+	 * @param from record index to start from
 	 * @return self
 	 */
 	public Query<T> from(int from) {
@@ -63,8 +62,7 @@ public class Query<T extends Model> {
 	/**
 	 * Sets fetch size
 	 * 
-	 * @param size
-	 *            the fetch size
+	 * @param size the fetch size
 	 * @return self
 	 */
 	public Query<T> size(int size) {
@@ -76,8 +74,7 @@ public class Query<T extends Model> {
 	/**
 	 * Controls entity hydration
 	 * 
-	 * @param hydrate
-	 *            hydrate entities
+	 * @param hydrate hydrate entities
 	 * @return self
 	 */
 	public Query<T> hydrate(boolean hydrate) {
@@ -89,8 +86,7 @@ public class Query<T extends Model> {
 	/**
 	 * Controls the usage of mapper
 	 * 
-	 * @param useMapper
-	 *            use mapper during result processing
+	 * @param useMapper use mapper during result processing
 	 * @return self
 	 */
 	public Query<T> useMapper(boolean useMapper) {
@@ -102,13 +98,12 @@ public class Query<T extends Model> {
 	/**
 	 * Adds a facet
 	 * 
-	 * @param facet
-	 *            the facet
+	 * @param aggr the facet
 	 * @return self
 	 */
-	public Query<T> addFacet(FacetBuilder facet) {
-		Validate.notNull(facet, "facet cannot be null");
-		facets.add(facet);
+	public Query<T> addAggr(AggregationBuilder aggr) {
+		Validate.notNull(aggr, "facet cannot be null");
+		aggrs.add(aggr);
 
 		return this;
 	}
@@ -116,10 +111,8 @@ public class Query<T extends Model> {
 	/**
 	 * Sorts the result by a specific field
 	 * 
-	 * @param field
-	 *            the sort field
-	 * @param order
-	 *            the sort order
+	 * @param field the sort field
+	 * @param order the sort order
 	 * @return self
 	 */
 	public Query<T> addSort(String field, SortOrder order) {
@@ -133,8 +126,7 @@ public class Query<T extends Model> {
 	/**
 	 * Adds a generic {@link SortBuilder}
 	 * 
-	 * @param sort
-	 *            the sort builder
+	 * @param sort the sort builder
 	 * @return self
 	 */
 	public Query<T> addSort(SortBuilder sort) {
@@ -154,8 +146,8 @@ public class Query<T extends Model> {
 		SearchRequestBuilder request = ElasticSearch.builder(builder, clazz);
 
 		// Facets
-		for (FacetBuilder facet : facets) {
-			request.addFacet(facet);
+		for (AggregationBuilder aggr : aggrs) {
+			request.addAggregation(aggr);
 		}
 
 		// Sorting
@@ -173,7 +165,7 @@ public class Query<T extends Model> {
 
 		// Only load id field for hydrate
 		if (hydrate) {
-			request.addField("_id");
+			request.addDocValueField("_id");
 		}
 
 		if (Logger.isDebugEnabled()) {

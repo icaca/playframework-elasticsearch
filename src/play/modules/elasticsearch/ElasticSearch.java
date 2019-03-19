@@ -22,7 +22,7 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.search.facet.FacetBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
 
 import play.Play;
 import play.db.Model;
@@ -47,31 +47,26 @@ public abstract class ElasticSearch {
 	/**
 	 * Build a SearchRequestBuilder
 	 * 
-	 * @param <T>
-	 *            the generic type
-	 * @param query
-	 *            the query builder
-	 * @param clazz
-	 *            the clazz
+	 * @param       <T> the generic type
+	 * @param query the query builder
+	 * @param clazz the clazz
 	 * 
 	 * @return the search request builder
 	 */
 	static <T extends Model> SearchRequestBuilder builder(final QueryBuilder query, final Class<T> clazz) {
 		final ModelMapper<T> mapper = ElasticSearchPlugin.getMapper(clazz);
 		final String index = mapper.getIndexName();
-		final SearchRequestBuilder builder = client().prepareSearch(index).setSearchType(SearchType.QUERY_THEN_FETCH).setQuery(query);
+		final SearchRequestBuilder builder = client().prepareSearch(index).setSearchType(SearchType.QUERY_THEN_FETCH)
+				.setQuery(query);
 		return builder;
 	}
 
 	/**
 	 * Build a Query
 	 * 
-	 * @param <T>
-	 *            the generic type
-	 * @param query
-	 *            the query builder
-	 * @param clazz
-	 *            the clazz
+	 * @param       <T> the generic type
+	 * @param query the query builder
+	 * @param clazz the clazz
 	 * 
 	 * @return the query
 	 */
@@ -82,56 +77,46 @@ public abstract class ElasticSearch {
 	/**
 	 * Search with optional facets.
 	 * 
-	 * @param <T>
-	 *            the generic type
-	 * @param query
-	 *            the query builder
-	 * @param clazz
-	 *            the clazz
-	 * @param facets
-	 *            the facets
+	 * @param       <T> the generic type
+	 * @param query the query builder
+	 * @param clazz the clazz
+	 * @param aggrs the facets
 	 * 
 	 * @return the search results
 	 */
-	public static <T extends Model> SearchResults<T> search(final QueryBuilder query, final Class<T> clazz, final FacetBuilder... facets) {
-		return search(query, clazz, false, facets);
+	public static <T extends Model> SearchResults<T> search(final QueryBuilder query, final Class<T> clazz,
+			final AggregationBuilder... aggrs) {
+		return search(query, clazz, false, aggrs);
 	}
 
 	/**
 	 * Search with optional facets. Hydrates entities
 	 * 
-	 * @param <T>
-	 *            the generic type
-	 * @param query
-	 *            the query builder
-	 * @param clazz
-	 *            the clazz
-	 * @param facets
-	 *            the facets
+	 * @param       <T> the generic type
+	 * @param query the query builder
+	 * @param clazz the clazz
+	 * @param aggrs the facets
 	 * 
 	 * @return the search results
 	 */
-	public static <T extends Model> SearchResults<T> searchAndHydrate(final QueryBuilder query, final Class<T> clazz, final FacetBuilder... facets) {
-		return search(query, clazz, true, facets);
+	public static <T extends Model> SearchResults<T> searchAndHydrate(final QueryBuilder query, final Class<T> clazz,
+			final AggregationBuilder... aggrs) {
+		return search(query, clazz, true, aggrs);
 	}
 
 	/**
 	 * Faceted search, hydrates entities if asked to do so.
 	 * 
-	 * @param <T>
-	 *            the generic type
-	 * @param query
-	 *            the query builder
-	 * @param clazz
-	 *            the clazz
-	 * @param hydrate
-	 *            hydrate JPA entities
-	 * @param facets
-	 *            the facets
+	 * @param         <T> the generic type
+	 * @param query   the query builder
+	 * @param clazz   the clazz
+	 * @param hydrate hydrate JPA entities
+	 * @param aggrs   the facets
 	 * 
 	 * @return the search results
 	 */
-	private static <T extends Model> SearchResults<T> search(final QueryBuilder query, final Class<T> clazz, final boolean hydrate, final FacetBuilder... facets) {
+	private static <T extends Model> SearchResults<T> search(final QueryBuilder query, final Class<T> clazz,
+			final boolean hydrate, final AggregationBuilder... aggrs) {
 		// Build a query for this search request
 		final Query<T> search = query(query, clazz);
 
@@ -139,8 +124,8 @@ public abstract class ElasticSearch {
 		search.hydrate(hydrate);
 
 		// Add facets
-		for (final FacetBuilder facet : facets) {
-			search.addFacet(facet);
+		for (final AggregationBuilder aggr : aggrs) {
+			search.addAggr(aggr);
 		}
 
 		return search.fetch();
@@ -149,10 +134,8 @@ public abstract class ElasticSearch {
 	/**
 	 * Indexes the given model
 	 * 
-	 * @param <T>
-	 *            the model type
-	 * @param model
-	 *            the model
+	 * @param       <T> the model type
+	 * @param model the model
 	 */
 	public static <T extends Model> void index(final T model) {
 		final ElasticSearchPlugin plugin = Play.plugin(ElasticSearchPlugin.class);
@@ -162,10 +145,8 @@ public abstract class ElasticSearch {
 	/**
 	 * Indexes the given model using delivery mode
 	 * 
-	 * @param <T>
-	 *            the model type
-	 * @param model
-	 *            the model
+	 * @param       <T> the model type
+	 * @param model the model
 	 */
 	public static <T extends Model> void index(final T model, final ElasticSearchDeliveryMode deliveryMode) {
 		final ElasticSearchPlugin plugin = Play.plugin(ElasticSearchPlugin.class);
@@ -175,10 +156,9 @@ public abstract class ElasticSearch {
 	/**
 	 * Reindexes the given model using provided delivery mode
 	 * 
-	 * @param deliveryMode
-	 *            Delivery mode to use for reindexing tasks. Set null to use the default, synchronous mode.
-	 * @param model
-	 *            the model
+	 * @param deliveryMode Delivery mode to use for reindexing tasks. Set null to
+	 *                     use the default, synchronous mode.
+	 * @param model        the model
 	 */
 	public static Promise<Void> reindex(final ElasticSearchDeliveryMode deliveryMode) {
 		return new ReindexDatabaseJob(deliveryMode).now();

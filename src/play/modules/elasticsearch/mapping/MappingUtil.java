@@ -3,6 +3,7 @@ package play.modules.elasticsearch.mapping;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.apache.commons.lang.Validate;
@@ -28,8 +29,7 @@ public abstract class MappingUtil {
 	/**
 	 * Checks if a class is searchable
 	 * 
-	 * @param clazz
-	 *            the class to check
+	 * @param clazz the class to check
 	 * @return true if searchable, false otherwise
 	 */
 	public static boolean isSearchable(Class<?> clazz) {
@@ -51,8 +51,7 @@ public abstract class MappingUtil {
 	/**
 	 * Creates an {@link XContentBuilder} which contains a single mapping
 	 * 
-	 * @param mapper
-	 *            the mapping
+	 * @param mapper the mapping
 	 * @return the content builder
 	 * @throws IOException
 	 */
@@ -64,12 +63,11 @@ public abstract class MappingUtil {
 
 		return builder;
 	}
-	
+
 	/**
 	 * Creates an {@link XContentBuilder} which contains a single settings mapping
 	 * 
-	 * @param mapper
-	 *            the mapping
+	 * @param mapper the mapping
 	 * @return the content builder
 	 * @throws IOException
 	 */
@@ -85,16 +83,13 @@ public abstract class MappingUtil {
 	/**
 	 * Adds a field to the content builder
 	 * 
-	 * @param builder
-	 *            the content builder
-	 * @param name
-	 *            the field name
-	 * @param type
-	 *            the field type
+	 * @param builder the content builder
+	 * @param name    the field name
+	 * @param type    the field type
 	 * @throws IOException
 	 */
-	public static void addField(XContentBuilder builder, String name, String type,
-			ElasticSearchFieldDescriptor meta) throws IOException {
+	public static void addField(XContentBuilder builder, String name, String type, ElasticSearchFieldDescriptor meta)
+			throws IOException {
 		Validate.notEmpty(name, "name cannot be empty");
 		Validate.notEmpty(type, "type cannot be empty");
 
@@ -221,8 +216,7 @@ public abstract class MappingUtil {
 	/**
 	 * Convert to date.
 	 * 
-	 * @param value
-	 *            the value
+	 * @param value the value
 	 * @return the date
 	 */
 	private static Date convertToDate(Object value) {
@@ -249,14 +243,17 @@ public abstract class MappingUtil {
 	/**
 	 * Gets the date.
 	 * 
-	 * @param val
-	 *            the val
+	 * @param val the val
 	 * @return the date
 	 */
 	private static Date getDate(String val) {
 		try {
 			// Use ES internal converter
-			return XContentBuilder.defaultDatePrinter.parseDateTime(val).toDate();
+			java.text.SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+			String s = "2011-07-09 ";
+			Date date = formatter.parse(s);
+			return date;
+//			return XContentBuilder.defaultDatePrinter.parseDateTime(val).toDate();
 		} catch (Throwable t) {
 			Logger.error(ExceptionUtil.getStackTrace(t), val);
 		}

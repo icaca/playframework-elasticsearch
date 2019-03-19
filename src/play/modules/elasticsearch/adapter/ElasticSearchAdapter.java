@@ -21,15 +21,15 @@ package play.modules.elasticsearch.adapter;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
-import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.Requests;
-import org.elasticsearch.common.settings.ImmutableSettings;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
-import org.elasticsearch.indices.IndexAlreadyExistsException;
+import org.elasticsearch.common.xcontent.XContentType;
 
 import play.Logger;
 import play.db.Model;
@@ -45,10 +45,8 @@ public abstract class ElasticSearchAdapter {
 	/**
 	 * Start index.
 	 * 
-	 * @param client
-	 *            the client
-	 * @param mapper
-	 *            the model mapper
+	 * @param client the client
+	 * @param mapper the model mapper
 	 */
 	public static <T extends Model> void startIndex(Client client, ModelMapper<T> mapper) {
 		createIndex(client, mapper);
@@ -58,28 +56,23 @@ public abstract class ElasticSearchAdapter {
 	/**
 	 * Creates the index.
 	 * 
-	 * @param client
-	 *            the client
-	 * @param mapper
-	 *            the model mapper
+	 * @param client the client
+	 * @param mapper the model mapper
 	 */
 	private static void createIndex(Client client, ModelMapper<?> mapper) {
 		String indexName = mapper.getIndexName();
 
 		try {
-			
+
 			XContentBuilder settings = MappingUtil.getSettingsMapper(mapper);
-			
+
 			Logger.debug("Starting Elastic Search Index %s", indexName);
 			CreateIndexResponse response = client.admin().indices()
 					.create(new CreateIndexRequest(indexName)
-					.settings(ImmutableSettings.settingsBuilder().loadFromSource(settings.string())))
+							.settings(Settings.builder().loadFromSource(settings.toString(), XContentType.JSON)))
 					.actionGet();
 
 			Logger.debug("Response: %s", response);
-
-		} catch (IndexAlreadyExistsException iaee) {
-			Logger.debug("Index already exists: %s", indexName);
 
 		} catch (Throwable t) {
 			Logger.warn(ExceptionUtil.getStackTrace(t));
@@ -89,10 +82,8 @@ public abstract class ElasticSearchAdapter {
 	/**
 	 * Creates the type.
 	 * 
-	 * @param client
-	 *            the client
-	 * @param mapper
-	 *            the model mapper
+	 * @param client the client
+	 * @param mapper the model mapper
 	 */
 	private static void createType(Client client, ModelMapper<?> mapper) {
 		String indexName = mapper.getIndexName();
@@ -102,13 +93,10 @@ public abstract class ElasticSearchAdapter {
 			Logger.debug("Create Elastic Search Type %s/%s", indexName, typeName);
 			PutMappingRequest request = Requests.putMappingRequest(indexName).type(typeName);
 			XContentBuilder mapping = MappingUtil.getMapping(mapper);
-			Logger.debug("Type mapping: \n %s", mapping.string());
+			Logger.debug("Type mapping: \n %s", mapping.toString());
 			request.source(mapping);
-			PutMappingResponse response = client.admin().indices().putMapping(request).actionGet();
+			AcknowledgedResponse response = client.admin().indices().putMapping(request).actionGet();
 			Logger.debug("Response: %s", response);
-
-		} catch (IndexAlreadyExistsException iaee) {
-			Logger.debug("Index already exists: %s", indexName);
 
 		} catch (Throwable t) {
 			Logger.warn(ExceptionUtil.getStackTrace(t));
@@ -118,19 +106,13 @@ public abstract class ElasticSearchAdapter {
 	/**
 	 * Index model.
 	 * 
-	 * @param <T>
-	 *            the generic type
-	 * @param client
-	 *            the client
-	 * @param mapper
-	 *            the model mapper
-	 * @param model
-	 *            the model
-	 * @throws Exception
-	 *             the exception
+	 * @param        <T> the generic type
+	 * @param client the client
+	 * @param mapper the model mapper
+	 * @param model  the model
+	 * @throws Exception the exception
 	 */
-	public static <T extends Model> void indexModel(Client client, ModelMapper<T> mapper, T model)
-			throws Exception {
+	public static <T extends Model> void indexModel(Client client, ModelMapper<T> mapper, T model) throws Exception {
 		Logger.debug("Index Model: %s", model);
 
 		// Check Client
@@ -152,9 +134,9 @@ public abstract class ElasticSearchAdapter {
 
 			contentBuilder = XContentFactory.jsonBuilder().prettyPrint();
 			mapper.addModel(model, contentBuilder);
-			Logger.debug("Index json: %s", contentBuilder.string());
-			IndexResponse response = client.prepareIndex(indexName, typeName, documentId)
-					.setSource(contentBuilder).execute().actionGet();
+			Logger.debug("Index json: %s", contentBuilder.toString());
+			IndexResponse response = client.prepareIndex(indexName, typeName, documentId).setSource(contentBuilder)
+					.execute().actionGet();
 
 			// Log Debug
 			Logger.debug("Index Response: %s", response);
@@ -169,25 +151,18 @@ public abstract class ElasticSearchAdapter {
 	/**
 	 * Delete model.
 	 * 
-	 * @param <T>
-	 *            the generic type
-	 * @param client
-	 *            the client
-	 * @param mapper
-	 *            the model mapper
-	 * @param model
-	 *            the model
-	 * @throws Exception
-	 *             the exception
+	 * @param        <T> the generic type
+	 * @param client the client
+	 * @param mapper the model mapper
+	 * @param model  the model
+	 * @throws Exception the exception
 	 */
-	public static <T extends Model> void deleteModel(Client client, ModelMapper<T> mapper, T model)
-			throws Exception {
+	public static <T extends Model> void deleteModel(Client client, ModelMapper<T> mapper, T model) throws Exception {
 		Logger.debug("Delete Model: %s", model);
 		String indexName = mapper.getIndexName();
 		String typeName = mapper.getTypeName();
 		String documentId = mapper.getDocumentId(model);
-		DeleteResponse response = client.prepareDelete(indexName, typeName, documentId)
-				.setOperationThreaded(false).execute().actionGet();
+		DeleteResponse response = client.prepareDelete(indexName, typeName, documentId).execute().actionGet();
 		Logger.debug("Delete Response: %s", response);
 
 	}

@@ -42,7 +42,7 @@ public class JPATransformer<T extends Model> implements Transformer<T> {
 	@Override
 	public SearchResults<T> toSearchResults(SearchResponse searchResponse, final Class<T> clazz) {
 		// Get Total Records Found
-		long count = searchResponse.getHits().totalHits();
+		long count = searchResponse.getHits().totalHits;
 
 		// Get key information
 		Class<T> hitClazz = clazz;
@@ -89,8 +89,8 @@ public class JPATransformer<T extends Model> implements Transformer<T> {
 				}
 				modelOrder.put(id, counter++);
 
-				scores.add(h.score());
-				sortValues.add(h.sortValues());
+				scores.add(h.getScore());
+				sortValues.add(h.getSortValues());
 
 			} catch (Exception e) {
 				throw new UnexpectedException(
@@ -123,8 +123,8 @@ public class JPATransformer<T extends Model> implements Transformer<T> {
 
 		Logger.debug("Models after sorting: %s", objects);
 
-		// Return Results
-		return new SearchResults<T>(count, objects, scores, sortValues, searchResponse.getFacets());
+		// Return Result
+		return new SearchResults<T>(count, objects, scores, sortValues, searchResponse.getAggregations());
 	}
 
 	private boolean shouldFailOnMissingObjects() {

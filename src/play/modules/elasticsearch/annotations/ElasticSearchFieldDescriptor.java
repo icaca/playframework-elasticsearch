@@ -1,20 +1,20 @@
 package play.modules.elasticsearch.annotations;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import org.elasticsearch.common.collect.Lists;
-
 public class ElasticSearchFieldDescriptor {
 
-	private List<ElasticSearchField> annotations = Lists.newArrayList();
+	private List<ElasticSearchField> annotations = new ArrayList();
 
 	public ElasticSearchFieldDescriptor(Field field) {
 		if (field.getAnnotation(ElasticSearchField.class) != null) {
-			this.annotations = Lists.newArrayList(field.getAnnotation(ElasticSearchField.class));
+			this.annotations = Arrays.asList(field.getAnnotation(ElasticSearchField.class));
 		} else if (field.getAnnotation(ElasticSearchMultiField.class) != null) {
-			this.annotations = Lists.newArrayList(field.getAnnotation(ElasticSearchMultiField.class).value());
+			this.annotations = Arrays.asList(field.getAnnotation(ElasticSearchMultiField.class).value());
 		}
 	}
 

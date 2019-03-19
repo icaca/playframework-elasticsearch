@@ -52,7 +52,7 @@ public class TtlTest extends MappingTest {
 
 		mapping.endObject();
 
-		assertEquals(mapping.string(), generatedMapping.string());
+		assertEquals(mapping.toString(), generatedMapping.toString());
 	}
 
 }

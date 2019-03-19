@@ -56,7 +56,7 @@ public class SimpleTransformer<T extends Model> implements Transformer<T> {
 	 */
 	public SearchResults<T> toSearchResults(SearchResponse searchResponse, Class<T> clazz) {
 		// Get Total Records Found
-		long count = searchResponse.getHits().totalHits();
+		long count = searchResponse.getHits().totalHits;
 
 		// Init List
 		List<T> objects = new ArrayList<T>();
@@ -76,7 +76,7 @@ public class SimpleTransformer<T extends Model> implements Transformer<T> {
 			
 
 			// Get Data Map
-			Map<String, Object> map = h.sourceAsMap();
+			Map<String, Object> map = h.getSourceAsMap();
 			Logger.debug("Record Map: %s", map);
 
 			// Bind Data
@@ -87,12 +87,12 @@ public class SimpleTransformer<T extends Model> implements Transformer<T> {
 			// Log Debug
 			Logger.debug("Model Instance: %s", o);
 			objects.add(o);
-            scores.add(h.score());
-            sortValues.add(h.sortValues());
+            scores.add(h.getScore());
+            sortValues.add(h.getRawSortValues());
         }
 
 		// Return Results
-		return new SearchResults<T>(count, objects, scores, sortValues, searchResponse.getFacets());
+		return new SearchResults<T>(count, objects, scores, sortValues, searchResponse.getAggregations());
 	}
 
 }

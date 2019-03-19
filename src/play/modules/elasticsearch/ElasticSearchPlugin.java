@@ -18,8 +18,8 @@
  */
 package play.modules.elasticsearch;
 
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
-
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
@@ -30,11 +30,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang.Validate;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.ImmutableSettings;
-import org.elasticsearch.common.settings.ImmutableSettings.Builder;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.node.Node;
-import org.elasticsearch.node.NodeBuilder;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.settings.Settings.Builder;
+import org.elasticsearch.common.transport.TransportAddress;
+import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
 import play.Logger;
 import play.Play;
@@ -148,7 +148,8 @@ public class ElasticSearchPlugin extends PlayPlugin {
 			return ElasticSearchDeliveryMode.LOCAL;
 		}
 		if ("CUSTOM".equals(s))
-			return ElasticSearchDeliveryMode.createCustomIndexEventHandler(Play.configuration.getProperty("elasticsearch.customIndexEventHandler", "play.modules.elasticsearch.LocalIndexEventHandler"));
+			return ElasticSearchDeliveryMode.createCustomIndexEventHandler(Play.configuration.getProperty(
+					"elasticsearch.customIndexEventHandler", "play.modules.elasticsearch.LocalIndexEventHandler"));
 		return ElasticSearchDeliveryMode.valueOf(s.toUpperCase());
 	}
 
@@ -172,34 +173,38 @@ public class ElasticSearchPlugin extends PlayPlugin {
 		}
 
 		// Start Node Builder
-		final Builder settings = ImmutableSettings.settingsBuilder();
+		final Builder builder = Settings.builder();
 		// settings.put("client.transport.sniff", true);
 
-		// Import anything from play configuration that starts with elasticsearch.native.
+		// Import anything from play configuration that starts with
+		// elasticsearch.native.
 		final Enumeration<Object> keys = Play.configuration.keys();
 		while (keys.hasMoreElements()) {
 			final String key = (String) keys.nextElement();
 			if (key.startsWith("elasticsearch.native.")) {
 				final String nativeKey = key.replaceFirst("elasticsearch.native.", "");
 				Logger.error("Adding native [" + nativeKey + "," + Play.configuration.getProperty(key) + "]");
-				settings.put(nativeKey, Play.configuration.getProperty(key));
+				builder.put(nativeKey, Play.configuration.getProperty(key));
 			}
 		}
 
-		settings.build();
+		Settings settings = builder.build();
 
 		// Check Model
 		if (this.isLocalMode()) {
 			Logger.info("Starting Elastic Search for Play! in Local Mode");
-			final NodeBuilder nb = nodeBuilder().settings(settings).local(true).client(false).data(true);
-			final Node node = nb.node();
-			client = node.client();
+
+			client = new PreBuiltTransportClient(
+					Settings.builder().put("client.transport.ignore_cluster_name", true).build())
+							.addTransportAddress(new TransportAddress(new InetSocketAddress("127.0.0.1", 9300)));
+			client.admin().cluster().prepareHealth().setTimeout(TimeValue.timeValueMillis(200)).get();
 
 		} else {
 			Logger.info("Connecting Play! to Elastic Search in Client Mode");
-			final TransportClient c = new TransportClient(settings);
+			final TransportClient c = new PreBuiltTransportClient(settings);
 			if (Play.configuration.getProperty("elasticsearch.client") == null) {
-				throw new RuntimeException("Configuration required - elasticsearch.client when local model is disabled!");
+				throw new RuntimeException(
+						"Configuration required - elasticsearch.client when local model is disabled!");
 			}
 			final String[] hosts = getHosts().trim().split(",");
 			boolean done = false;
@@ -210,8 +215,14 @@ public class ElasticSearchPlugin extends PlayPlugin {
 				}
 				Logger.info("Transport Client - Host: %s Port: %s", parts[0], parts[1]);
 				if (Integer.valueOf(parts[1]) == 9200)
-					Logger.info("Note: Port 9200 is usually used by the HTTP Transport. You might want to use 9300 instead.");
-				c.addTransportAddress(new InetSocketTransportAddress(parts[0], Integer.valueOf(parts[1])));
+					Logger.info(
+							"Note: Port 9200 is usually used by the HTTP Transport. You might want to use 9300 instead.");
+				try {
+					c.addTransportAddress(
+							new TransportAddress(InetAddress.getByName(parts[0]), Integer.valueOf(parts[1])));
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 				done = true;
 			}
 			if (done == false) {
@@ -228,7 +239,8 @@ public class ElasticSearchPlugin extends PlayPlugin {
 
 		// Check Client
 		if (client == null) {
-			throw new RuntimeException("Elastic Search Client cannot be null - please check the configuration provided and the health of your Elastic Search instances.");
+			throw new RuntimeException(
+					"Elastic Search Client cannot be null - please check the configuration provided and the health of your Elastic Search instances.");
 		}
 	}
 
@@ -255,7 +267,8 @@ public class ElasticSearchPlugin extends PlayPlugin {
 	}
 
 	private static boolean isInterestingEvent(final String event) {
-		return event.endsWith(".objectPersisted") || event.endsWith(".objectUpdated") || event.endsWith(".objectDeleted");
+		return event.endsWith(".objectPersisted") || event.endsWith(".objectUpdated")
+				|| event.endsWith(".objectDeleted");
 	}
 
 	/**

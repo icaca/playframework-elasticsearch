@@ -98,7 +98,7 @@ public class EmbeddedMappingTest extends MappingTest {
 		mapping.endObject();
 		mapping.endObject();
 
-		assertEquals(mapping.string(), generatedMapping.string());
+		assertEquals(mapping.toString(), generatedMapping.toString());
 	}
 
 	/**
@@ -135,7 +135,7 @@ public class EmbeddedMappingTest extends MappingTest {
 		mapping.endObject();
 		mapping.endObject();
 
-		assertEquals(mapping.string(), generatedMapping.string());
+		assertEquals(mapping.toString(), generatedMapping.toString());
 	}
 
 	/**
@@ -172,7 +172,7 @@ public class EmbeddedMappingTest extends MappingTest {
 		mapping.endObject();
 		mapping.endObject();
 
-		assertEquals(mapping.string(), generatedMapping.string());
+		assertEquals(mapping.toString(), generatedMapping.toString());
 	}
 
 	/**
@@ -213,7 +213,7 @@ public class EmbeddedMappingTest extends MappingTest {
 		mapping.endObject();
 		mapping.endObject();
 
-		assertEquals(mapping.string(), generatedMapping.string());
+		assertEquals(mapping.toString(), generatedMapping.toString());
 	}
 
 	/**
@@ -256,7 +256,7 @@ public class EmbeddedMappingTest extends MappingTest {
 		mapping.endObject();
 		mapping.endObject();
 
-		assertEquals(mapping.string(), generatedMapping.string());
+		assertEquals(mapping.toString(), generatedMapping.toString());
 	}
 
 	/**
@@ -299,7 +299,7 @@ public class EmbeddedMappingTest extends MappingTest {
 		mapping.endObject();
 		mapping.endObject();
 
-		assertEquals(mapping.string(), generatedMapping.string());
+		assertEquals(mapping.toString(), generatedMapping.toString());
 	}
 
 }

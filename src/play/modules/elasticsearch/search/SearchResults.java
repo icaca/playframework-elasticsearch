@@ -20,7 +20,7 @@ package play.modules.elasticsearch.search;
 
 import java.util.List;
 
-import org.elasticsearch.search.facet.Facets;
+import org.elasticsearch.search.aggregations.Aggregations;
 
 import play.db.Model;
 
@@ -37,33 +37,33 @@ public class SearchResults<T extends Model> {
 	/** The objects. */
 	public List<T> objects;
 
-    /** The result scores (same order as the objects). */
-    public List<Float> scores;
+	/** The result scores (same order as the objects). */
+	public List<Float> scores;
 
-    /** The sort values (same order as the objects). */
-    public List<Object[]> sortValues;
+	/** The sort values (same order as the objects). */
+	public List<Object[]> sortValues;
 
-    /** The facets. */
-	public Facets facets;
-
+	/** The facets. */
+	public Aggregations aggr;
 
 	/**
 	 * Instantiates a new search results.
 	 *
 	 * @param totalCount the total count
-	 * @param objects the objects
-	 * @param facets the facets
+	 * @param objects    the objects
+	 * @param aggr       the facets
 	 */
-	public SearchResults(long totalCount, List<T> objects, Facets facets) {
-        this(totalCount, objects, null, null, facets);
+	public SearchResults(long totalCount, List<T> objects, Aggregations aggr) {
+		this(totalCount, objects, null, null, aggr);
 	}
 
-    public SearchResults(long totalCount, List<T> objects, List<Float> scores, List<Object[]> sortValues, Facets facets) {
-        this.totalCount = totalCount;
-        this.objects = objects;
-        this.scores = scores;
-        this.sortValues = sortValues;
-        this.facets = facets;
-    }
+	public SearchResults(long totalCount, List<T> objects, List<Float> scores, List<Object[]> sortValues,
+			Aggregations aggr) {
+		this.totalCount = totalCount;
+		this.objects = objects;
+		this.scores = scores;
+		this.sortValues = sortValues;
+		this.aggr = aggr;
+	}
 
 }
