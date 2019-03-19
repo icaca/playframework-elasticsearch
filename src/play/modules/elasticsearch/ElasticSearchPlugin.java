@@ -18,7 +18,6 @@
  */
 package play.modules.elasticsearch;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -160,7 +159,7 @@ public class ElasticSearchPlugin extends PlayPlugin {
 	 */
 	@Override
 	public void onApplicationStart() {
-		// (re-)set caches
+ 		// (re-)set caches
 		mappers = new ConcurrentHashMap<Class<?>, ModelMapper<?>>();
 		modelLookup = new ConcurrentHashMap<String, Class<?>>();
 		indicesStarted = Collections.newSetFromMap(new ConcurrentHashMap<Class<?>, Boolean>());
@@ -188,7 +187,7 @@ public class ElasticSearchPlugin extends PlayPlugin {
 			}
 		}
 
-		Settings settings = builder.build();
+		Settings settings = builder.put("cluster.name", "es").build();
 
 		// Check Model
 		if (this.isLocalMode()) {
@@ -217,12 +216,7 @@ public class ElasticSearchPlugin extends PlayPlugin {
 				if (Integer.valueOf(parts[1]) == 9200)
 					Logger.info(
 							"Note: Port 9200 is usually used by the HTTP Transport. You might want to use 9300 instead.");
-				try {
-					c.addTransportAddress(
-							new TransportAddress(InetAddress.getByName(parts[0]), Integer.valueOf(parts[1])));
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+				c.addTransportAddress(new TransportAddress(new InetSocketAddress(parts[0], Integer.valueOf(parts[1]))));
 				done = true;
 			}
 			if (done == false) {
