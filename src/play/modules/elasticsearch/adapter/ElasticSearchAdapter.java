@@ -26,10 +26,13 @@ import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.Requests;
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.common.xcontent.XContentType;
+
+import com.google.gson.Gson;
 
 import play.Logger;
 import play.db.Model;
@@ -67,9 +70,10 @@ public abstract class ElasticSearchAdapter {
 			XContentBuilder settings = MappingUtil.getSettingsMapper(mapper);
 
 			Logger.debug("Starting Elastic Search Index %s", indexName);
+			Logger.info("Index Settings: %s", Strings.toString(settings));
 			CreateIndexResponse response = client.admin().indices()
 					.create(new CreateIndexRequest(indexName)
-							.settings(Settings.builder().loadFromSource(settings.toString(), XContentType.JSON)))
+							.settings(Settings.builder().loadFromSource( Strings.toString(settings), XContentType.JSON)))
 					.actionGet();
 
 			Logger.debug("Response: %s", response);
@@ -133,17 +137,18 @@ public abstract class ElasticSearchAdapter {
 			Logger.debug("Index Name: %s", indexName);
 
 			contentBuilder = XContentFactory.jsonBuilder().prettyPrint();
+			// Logger.debug("Index json: %s", new Gson().toJson(contentBuilder));
 			mapper.addModel(model, contentBuilder);
-			Logger.debug("Index json: %s", contentBuilder.toString());
 			IndexResponse response = client.prepareIndex(indexName, typeName, documentId).setSource(contentBuilder)
 					.execute().actionGet();
 
+			Logger.info("%s", contentBuilder.toString());
 			// Log Debug
 			Logger.debug("Index Response: %s", response);
 
 		} finally {
 			if (contentBuilder != null) {
-				contentBuilder.close();
+//				contentBuilder.close();
 			}
 		}
 	}

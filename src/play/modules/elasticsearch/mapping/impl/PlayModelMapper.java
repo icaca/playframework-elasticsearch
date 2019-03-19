@@ -12,6 +12,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
+import com.google.gson.Gson;
+
+import play.Logger;
 import play.db.Model;
 import play.modules.elasticsearch.annotations.ElasticSearchIgnore;
 import play.modules.elasticsearch.annotations.ElasticSearchTtl;
@@ -28,8 +31,7 @@ import play.modules.elasticsearch.util.ReflectionUtil;
 /**
  * ModelMapper for play.db.Model subclasses.
  * 
- * @param <M>
- *            the model type
+ * @param <M> the model type
  */
 public class PlayModelMapper<M extends Model> implements ModelMapper<M> {
 
@@ -58,15 +60,13 @@ public class PlayModelMapper<M extends Model> implements ModelMapper<M> {
 	static boolean shouldIgnoreField(Field field) {
 		String name = field.getName();
 
-		return StringUtils.isBlank(name) || IGNORE_FIELDS.contains(name)
-				|| shouldIgnoreJPAField(field);
+		return StringUtils.isBlank(name) || IGNORE_FIELDS.contains(name) || shouldIgnoreJPAField(field);
 	}
 
 	/**
 	 * Checks if a field should be ignored based on JPA-specifics
 	 * 
-	 * @param field
-	 *            the field to check
+	 * @param field the field to check
 	 * @return true if the field should be ignored, false otherwise
 	 */
 	static boolean shouldIgnoreJPAField(Field field) {
@@ -80,16 +80,12 @@ public class PlayModelMapper<M extends Model> implements ModelMapper<M> {
 	/**
 	 * Gets a list of {@link FieldMapper}s for the given model class
 	 * 
-	 * @param <M>
-	 *            the model type
-	 * @param factory
-	 *            the mapper factory
-	 * @param clazz
-	 *            the model class
+	 * @param         <M> the model type
+	 * @param factory the mapper factory
+	 * @param clazz   the model class
 	 * @return the list of FieldMappers
 	 */
-	private static final <M extends Model> List<FieldMapper<M>> getMapping(MapperFactory factory,
-			Class<M> clazz) {
+	private static final <M extends Model> List<FieldMapper<M>> getMapping(MapperFactory factory, Class<M> clazz) {
 		List<FieldMapper<M>> mapping = new ArrayList<FieldMapper<M>>();
 
 		List<Field> indexableFields = ReflectionUtil.getAllFields(clazz);
@@ -142,7 +138,7 @@ public class PlayModelMapper<M extends Model> implements ModelMapper<M> {
 			builder.field("default", ttlValue);
 			builder.endObject();
 		}
-		
+
 		builder.startObject("properties");
 
 		for (FieldMapper<M> field : mapping) {
@@ -152,61 +148,61 @@ public class PlayModelMapper<M extends Model> implements ModelMapper<M> {
 		builder.endObject();
 		builder.endObject();
 	}
-	
-	public void addSettings(XContentBuilder builder) throws IOException{
 
-		if(clazz.getAnnotation(ElasticSearchable.class).analysis() == null)
+	public void addSettings(XContentBuilder builder) throws IOException {
+
+		if (clazz.getAnnotation(ElasticSearchable.class).analysis() == null)
 			return;
 
 		ElasticSearchAnalysis analysis = clazz.getAnnotation(ElasticSearchable.class).analysis();
-		
-		if((analysis.analyzers() == null || analysis.analyzers().length < 1) && 
-		   (analysis.filters() == null || analysis.filters().length < 1))
+
+		if ((analysis.analyzers() == null || analysis.analyzers().length < 1)
+				&& (analysis.filters() == null || analysis.filters().length < 1))
 			return;
-		
+
 		builder.startObject("analysis");
-		
-		if(analysis.analyzers() != null && analysis.analyzers().length > 0){
+
+		if (analysis.analyzers() != null && analysis.analyzers().length > 0) {
 			builder.startObject("analyzer");
 
 			for (ElasticSearchAnalyzer analyzer : analysis.analyzers()) {
-				
+
 				builder.startObject(analyzer.name());
-				
-				if(analyzer.tokenizer() != null)
+
+				if (analyzer.tokenizer() != null)
 					builder.field("tokenizer", analyzer.tokenizer());
-				
-				if(analyzer.filtersNames() != null && analyzer.filtersNames().length > 0)
+
+				if (analyzer.filtersNames() != null && analyzer.filtersNames().length > 0)
 					builder.field("filter", analyzer.filtersNames());
-				
+
 				builder.endObject();
 			}
-			
+
 			builder.endObject();
 		}
-		
-		if(analysis.filters() != null && analysis.filters().length > 0){
-			
+
+		if (analysis.filters() != null && analysis.filters().length > 0) {
+
 			builder.startObject("filter");
-		
+
 			for (ElasticSearchFilter filter : analysis.filters()) {
-				
+
 				builder.startObject(filter.name());
-				
+
 				builder.field("type", filter.typeName());
-				
+
 				for (ElasticSearchSetting setting : filter.settings()) {
-					
+
 					builder.field(setting.name(), setting.value());
-					
+
 				}
-				
+
 				builder.endObject();
 			}
-			
+
 			builder.endObject();
 		}
-		
+
 		builder.endObject();
 	}
 

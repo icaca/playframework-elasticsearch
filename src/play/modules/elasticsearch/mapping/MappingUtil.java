@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.apache.commons.lang.Validate;
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.joda.time.LocalDate;
@@ -76,7 +77,7 @@ public abstract class MappingUtil {
 		builder.startObject();
 		mapper.addSettings(builder);
 		builder.endObject();
-
+		Logger.info("getSettingsMapper %s", Strings.toString(builder));
 		return builder;
 	}
 

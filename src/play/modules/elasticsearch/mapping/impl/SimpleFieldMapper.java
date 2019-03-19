@@ -6,14 +6,14 @@ import java.util.Map;
 
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
+import play.Logger;
 import play.modules.elasticsearch.mapping.MappingUtil;
 import play.modules.elasticsearch.util.ReflectionUtil;
 
 /**
  * Field mapper for simple, single-valued types
  * 
- * @param <M>
- *            the generic model type which owns this field
+ * @param <M> the generic model type which owns this field
  */
 public class SimpleFieldMapper<M> extends AbstractFieldMapper<M> {
 
@@ -34,8 +34,14 @@ public class SimpleFieldMapper<M> extends AbstractFieldMapper<M> {
 		String field = getIndexField();
 		Object value = getFieldValue(model);
 
+		// Logger.info("%s %s", field, value);
 		if (value != null) {
-			builder.field(field, value);
+			try {
+				builder.field(field, value);
+			} catch (Exception e) {
+				Logger.info("exception %s %s", field, value);
+				// TODO: handle exception
+			}
 		}
 	}
 
