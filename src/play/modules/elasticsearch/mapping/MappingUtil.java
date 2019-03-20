@@ -7,7 +7,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.apache.commons.lang.Validate;
-import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.joda.time.LocalDate;
@@ -77,7 +76,7 @@ public abstract class MappingUtil {
 		builder.startObject();
 		mapper.addSettings(builder);
 		builder.endObject();
-		//Logger.info("getSettingsMapper %s", Strings.toString(builder));
+		// Logger.info("getSettingsMapper %s", Strings.toString(builder));
 		return builder;
 	}
 
@@ -165,6 +164,7 @@ public abstract class MappingUtil {
 	}
 
 	public static Object convertValue(final Object value, final Class<?> targetType) {
+		Logger.debug("%s %s", targetType,value);
 		if (targetType.equals(value.getClass())) {
 			// Types match
 			return value;
@@ -201,6 +201,10 @@ public abstract class MappingUtil {
 			} else {
 				return Double.valueOf(value.toString());
 			}
+		} else if (targetType.equals(Boolean.class) || targetType.equals(boolean.class)) {
+
+			return Boolean.parseBoolean(value.toString());
+
 		} else if (targetType.equals(Float.class)) {
 			if (value instanceof Number) {
 				return Float.valueOf(((Number) value).floatValue());

@@ -81,6 +81,7 @@ public class SimpleTransformer<T extends Model> implements Transformer<T> {
 
 			// Bind Data
 			for (Map.Entry<String, Object> e : map.entrySet()) {
+				Logger.info("%s %s %s", o, e.getKey(), e.getValue());
 				ReflectionUtil.setFieldValue(o, e.getKey(), e.getValue());
 			}
 

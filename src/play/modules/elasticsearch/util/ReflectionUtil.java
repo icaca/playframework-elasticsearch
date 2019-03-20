@@ -19,13 +19,18 @@
 package play.modules.elasticsearch.util;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import com.sun.org.apache.xpath.internal.operations.Bool;
 
 import play.Logger;
 import play.modules.elasticsearch.mapping.MappingUtil;
@@ -60,8 +65,7 @@ public abstract class ReflectionUtil {
 	/**
 	 * Gets the all fields.
 	 * 
-	 * @param originalClass
-	 *            the original class
+	 * @param originalClass the original class
 	 * @return the all fields
 	 */
 	public static List<Field> getAllFields(final Class<?> originalClass) {
@@ -92,12 +96,11 @@ public abstract class ReflectionUtil {
 
 		// Check Count
 		if (count > 10) {
-			Logger.warn("Too many iterations on ReflectionUtil.getAllFields() - class: "
-					+ originalClass);
+			Logger.warn("Too many iterations on ReflectionUtil.getAllFields() - class: " + originalClass);
 		}
 
 		// make the list unmodifiable
-		List<Field> unmodifiableFields = Collections.<Field> unmodifiableList(fields);
+		List<Field> unmodifiableFields = Collections.<Field>unmodifiableList(fields);
 
 		// put into cache
 		classFieldsCache.put(className, unmodifiableFields);
@@ -109,20 +112,44 @@ public abstract class ReflectionUtil {
 	/**
 	 * Gets the field value.
 	 * 
-	 * @param object
-	 *            the object
-	 * @param field
-	 *            the field
+	 * @param object the object
+	 * @param field  the field
 	 * @return the field value
 	 */
 	public static Object getFieldValue(Object object, Field field) {
 		field.setAccessible(true);
-		//String fieldName = field.getName();
-		//String methodName =  Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+		// String fieldName = field.getName();
+		// String methodName = Character.toUpperCase(fieldName.charAt(0)) +
+		// fieldName.substring(1);
+
+		Class type = field.getType();
+
 		try {
-			return field.get(object);
-			//return object.getClass().getDeclaredField(fieldName).get(object);//.invoke(object);
-		}  catch (Exception e) {
+			Object value = field.get(object);
+			if (type == int.class || type == Integer.class) {
+				return (Integer) value;
+			} else if (type == java.util.Date.class) {
+				return ((java.util.Date) value).getTime();
+			} else if (type == java.sql.Date.class) {
+				return ((java.sql.Date) value).getTime();
+			} else if (type == long.class || type == Long.class) {
+				return (Long) value;
+			} else if (type == double.class || type == Double.class) {
+				return (Double) value;
+			} else if (type == float.class || type == Float.class) {
+				return (Float) value;
+			} else if (type == boolean.class || type == Bool.class) {
+				if (value == null) {
+					return false;
+				} else {
+					return (boolean) value;
+				}
+			} else {
+				return value;
+			}
+			// return
+			// object.getClass().getDeclaredField(fieldName).get(object);//.invoke(object);
+		} catch (Exception e) {
 			Logger.warn(ExceptionUtil.getStackTrace(e));
 			// throw new RuntimeException( e );
 		}
@@ -132,10 +159,8 @@ public abstract class ReflectionUtil {
 	/**
 	 * Gets the field value.
 	 * 
-	 * @param object
-	 *            the object
-	 * @param fieldName
-	 *            the field name
+	 * @param object    the object
+	 * @param fieldName the field name
 	 * @return the field value
 	 */
 	public static Object getFieldValue(Object object, String fieldName) {
@@ -161,10 +186,8 @@ public abstract class ReflectionUtil {
 	/**
 	 * Gets the all field names with type.
 	 * 
-	 * @param originalClass
-	 *            the original class
-	 * @param type
-	 *            the type
+	 * @param originalClass the original class
+	 * @param type          the type
 	 * @return the all field names with type
 	 */
 	public static List<String> getAllFieldNamesWithType(final Class<?> originalClass, Class<?> type) {
@@ -191,8 +214,8 @@ public abstract class ReflectionUtil {
 
 		// Check Count
 		if (count > 10) {
-			Logger.warn("Too many iterations on ReflectionUtil.getFieldNamesWithType() - class: "
-					+ originalClass + " - " + type);
+			Logger.warn("Too many iterations on ReflectionUtil.getFieldNamesWithType() - class: " + originalClass
+					+ " - " + type);
 		}
 
 		// Return List
@@ -202,10 +225,8 @@ public abstract class ReflectionUtil {
 	/**
 	 * Checks for annotation.
 	 * 
-	 * @param field
-	 *            the field
-	 * @param clazz
-	 *            the clazz
+	 * @param field the field
+	 * @param clazz the clazz
 	 * @return true, if successful
 	 */
 	public static boolean hasAnnotation(Field field, Class<? extends Annotation> clazz) {
@@ -215,8 +236,7 @@ public abstract class ReflectionUtil {
 	/**
 	 * New instance.
 	 * 
-	 * @param className
-	 *            the class name
+	 * @param className the class name
 	 * @return the object
 	 */
 	public static Object newInstance(String className) {
@@ -232,10 +252,8 @@ public abstract class ReflectionUtil {
 	/**
 	 * New instance.
 	 * 
-	 * @param <T>
-	 *            the generic type
-	 * @param clazz
-	 *            the clazz
+	 * @param       <T> the generic type
+	 * @param clazz the clazz
 	 * @return the t
 	 */
 	public static <T> T newInstance(Class<T> clazz) {
@@ -307,14 +325,11 @@ public abstract class ReflectionUtil {
 	/**
 	 * Gets the fields with annotation.
 	 * 
-	 * @param mainClass
-	 *            the main class
-	 * @param annotationClass
-	 *            the annotation class
+	 * @param mainClass       the main class
+	 * @param annotationClass the annotation class
 	 * @return the fields with annotation
 	 */
-	public static List<Field> getFieldsWithAnnotation(Class<?> mainClass,
-			Class<? extends Annotation> annotationClass) {
+	public static List<Field> getFieldsWithAnnotation(Class<?> mainClass, Class<? extends Annotation> annotationClass) {
 
 		final AnnotationFieldsHolder holder = getAnnotationHolder(mainClass, annotationClass);
 		return holder.getFields();
@@ -323,10 +338,8 @@ public abstract class ReflectionUtil {
 	/**
 	 * Gets the field names with annotation.
 	 * 
-	 * @param mainClass
-	 *            the main class
-	 * @param annotationClass
-	 *            the annotation class
+	 * @param mainClass       the main class
+	 * @param annotationClass the annotation class
 	 * @return the field names with annotation
 	 */
 	public static List<String> getFieldNamesWithAnnotation(Class<?> mainClass,
@@ -339,10 +352,8 @@ public abstract class ReflectionUtil {
 	/**
 	 * Gets the all field names without annotation.
 	 * 
-	 * @param clazz
-	 *            the clazz
-	 * @param annotationClass
-	 *            the annotation class
+	 * @param clazz           the clazz
+	 * @param annotationClass the annotation class
 	 * @return the all field names without annotation
 	 */
 	public static List<String> getAllFieldNamesWithoutAnnotation(Class<?> clazz,
@@ -362,10 +373,8 @@ public abstract class ReflectionUtil {
 	/**
 	 * Gets the all fields without annotation.
 	 * 
-	 * @param clazz
-	 *            the clazz
-	 * @param annotationClass
-	 *            the annotation class
+	 * @param clazz           the clazz
+	 * @param annotationClass the annotation class
 	 * @return the all fields without annotation
 	 */
 	public static List<Field> getAllFieldsWithoutAnnotation(Class<?> clazz,
@@ -384,12 +393,9 @@ public abstract class ReflectionUtil {
 	/**
 	 * Sets the field value.
 	 * 
-	 * @param object
-	 *            the object
-	 * @param fieldName
-	 *            the field name
-	 * @param value
-	 *            the value
+	 * @param object    the object
+	 * @param fieldName the field name
+	 * @param value     the value
 	 */
 	public static void setFieldValue(Object object, String fieldName, Object value) {
 		Field field = getField(object, fieldName);
@@ -399,12 +405,9 @@ public abstract class ReflectionUtil {
 	/**
 	 * Sets the field value.
 	 * 
-	 * @param object
-	 *            the object
-	 * @param field
-	 *            the field
-	 * @param value
-	 *            the value
+	 * @param object the object
+	 * @param field  the field
+	 * @param value  the value
 	 */
 	private static void setFieldValue(Object object, Field field, Object value) {
 		// make accessible
@@ -426,10 +429,8 @@ public abstract class ReflectionUtil {
 	/**
 	 * Gets the field.
 	 * 
-	 * @param object
-	 *            the object
-	 * @param fieldName
-	 *            the field name
+	 * @param object    the object
+	 * @param fieldName the field name
 	 * @return the field
 	 */
 	private static Field getField(final Object object, String fieldName) {
@@ -460,10 +461,8 @@ public abstract class ReflectionUtil {
 	/**
 	 * Gets the parent class by type.
 	 * 
-	 * @param object
-	 *            the object
-	 * @param clazz
-	 *            the clazz
+	 * @param object the object
+	 * @param clazz  the clazz
 	 * @return the parent class by type
 	 */
 	public static Class<?> getParentClassByType(Object object, Class<?> clazz) {
@@ -480,8 +479,7 @@ public abstract class ReflectionUtil {
 	/**
 	 * Checks if is abstract.
 	 * 
-	 * @param clazz
-	 *            the clazz
+	 * @param clazz the clazz
 	 * @return true, if is abstract
 	 */
 	public static boolean isAbstract(Class<?> clazz) {
@@ -492,8 +490,7 @@ public abstract class ReflectionUtil {
 	/**
 	 * Checks if is interface.
 	 * 
-	 * @param clazz
-	 *            the clazz
+	 * @param clazz the clazz
 	 * @return true, if is interface
 	 */
 	public static boolean isInterface(Class<?> clazz) {
@@ -504,8 +501,7 @@ public abstract class ReflectionUtil {
 	/**
 	 * Checks if is concrete.
 	 * 
-	 * @param clazz
-	 *            the clazz
+	 * @param clazz the clazz
 	 * @return true, if is concrete
 	 */
 	public static boolean isConcrete(Class<?> clazz) {
@@ -526,10 +522,8 @@ public abstract class ReflectionUtil {
 		/**
 		 * Instantiates a new class annotation holder.
 		 * 
-		 * @param mainClass
-		 *            the main class
-		 * @param annotationClass
-		 *            the annotation class
+		 * @param mainClass       the main class
+		 * @param annotationClass the annotation class
 		 */
 		public ClassAnnotationHolder(Class<?> mainClass, Class<?> annotationClass) {
 			super();
@@ -620,12 +614,11 @@ public abstract class ReflectionUtil {
 		/**
 		 * Instantiates a new annotation fields holder.
 		 * 
-		 * @param fields
-		 *            the fields
+		 * @param fields the fields
 		 */
 		public AnnotationFieldsHolder(List<Field> fields) {
 			super();
-			this.fields = Collections.<Field> unmodifiableList(fields);
+			this.fields = Collections.<Field>unmodifiableList(fields);
 			initFieldNames();
 		}
 
@@ -659,7 +652,7 @@ public abstract class ReflectionUtil {
 			}
 
 			// make this an unmodifiableList
-			fieldNames = Collections.<String> unmodifiableList(names);
+			fieldNames = Collections.<String>unmodifiableList(names);
 		}
 
 		/*
