@@ -306,7 +306,7 @@ public class ElasticSearchPlugin extends PlayPlugin {
 		}
 
 		// Sync with Elastic Search
-		Logger.info("Elastic Search Index Event: %s", event);
+		Logger.debug("Elastic Search Index Event: %s", event);
 		if (event != null) {
 			final ElasticSearchDeliveryMode deliveryMode = getDeliveryMode();
 			final IndexEventHandler handler = deliveryMode.getHandler();

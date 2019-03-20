@@ -40,7 +40,7 @@ public class ElasticSearchDeliveryMode {
 	public final static ElasticSearchDeliveryMode DISCARD = new ElasticSearchDeliveryMode(new IndexEventHandler() {
 		@Override
 		public void handle(final ElasticSearchIndexEvent event) {
-			Logger.info("Discarding index event %s", event);
+			Logger.debug("Discarding index event %s", event);
 		}
 	});
 

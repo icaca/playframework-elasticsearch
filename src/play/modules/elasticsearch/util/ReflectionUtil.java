@@ -139,11 +139,10 @@ public abstract class ReflectionUtil {
 			} else if (type == float.class || type == Float.class) {
 				return (Float) value;
 			} else if (type == boolean.class || type == Bool.class) {
-				if (value == null) {
+				if(value==null) {
 					return false;
-				} else {
-					return (boolean) value;
-				}
+				}else {
+				return (boolean) value;}
 			} else {
 				return value;
 			}

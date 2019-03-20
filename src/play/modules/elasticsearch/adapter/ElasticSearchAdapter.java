@@ -71,7 +71,7 @@ public abstract class ElasticSearchAdapter {
 			XContentBuilder settings = MappingUtil.getSettingsMapper(mapper);
 
 			Logger.debug("Starting Elastic Search Index %s", indexName);
-			Logger.info("Index Settings: %s", Strings.toString(settings));
+			Logger.debug("Index Settings: %s", Strings.toString(settings));
 			
 			
 			CreateIndexResponse response = client.admin().indices()
