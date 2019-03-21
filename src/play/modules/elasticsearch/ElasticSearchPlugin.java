@@ -159,7 +159,7 @@ public class ElasticSearchPlugin extends PlayPlugin {
 	 */
 	@Override
 	public void onApplicationStart() {
- 		// (re-)set caches
+		// (re-)set caches
 		mappers = new ConcurrentHashMap<Class<?>, ModelMapper<?>>();
 		modelLookup = new ConcurrentHashMap<String, Class<?>>();
 		indicesStarted = Collections.newSetFromMap(new ConcurrentHashMap<Class<?>, Boolean>());
@@ -255,7 +255,10 @@ public class ElasticSearchPlugin extends PlayPlugin {
 		if (!indicesStarted.contains(clazz)) {
 			final ModelMapper<Model> mapper = getMapper(clazz);
 			Logger.info("Start Index for Class: %s", clazz);
-			ElasticSearchAdapter.startIndex(client(), mapper);
+			if (!ElasticSearchAdapter.indexExists(client(), mapper.getIndexName())) {
+				ElasticSearchAdapter.startIndex(client(), mapper);
+			}
+
 			indicesStarted.add(clazz);
 		}
 	}

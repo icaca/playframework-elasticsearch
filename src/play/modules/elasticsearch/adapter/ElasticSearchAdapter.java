@@ -20,6 +20,8 @@ package play.modules.elasticsearch.adapter;
 
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
+import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
+import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.index.IndexRequestBuilder;
@@ -53,6 +55,13 @@ public abstract class ElasticSearchAdapter {
 	public static <T extends Model> void startIndex(Client client, ModelMapper<T> mapper) {
 		createIndex(client, mapper);
 		createType(client, mapper);
+	}
+
+	public static boolean indexExists(Client client, String indexName) {
+
+		IndicesExistsResponse response = client.admin().indices()
+				.exists(new IndicesExistsRequest().indices(new String[] { indexName })).actionGet();
+		return response.isExists();
 	}
 
 	/**
