@@ -255,8 +255,8 @@ public abstract class MappingUtil {
 		try {
 			// Use ES internal converter
 			java.text.SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-			String s = "2011-07-09 ";
-			Date date = formatter.parse(s);
+//			String s = "2011-07-09 ";
+			Date date = formatter.parse(val);
 			return date;
 //			return XContentBuilder.defaultDatePrinter.parseDateTime(val).toDate();
 		} catch (Throwable t) {

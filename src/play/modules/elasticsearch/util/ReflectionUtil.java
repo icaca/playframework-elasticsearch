@@ -126,6 +126,11 @@ public abstract class ReflectionUtil {
 
 		try {
 			Object value = field.get(object);
+
+			if (value == null) {
+				return null;
+			}
+
 			if (type == int.class || type == Integer.class) {
 				return (Integer) value;
 			} else if (type == java.util.Date.class) {
@@ -139,10 +144,8 @@ public abstract class ReflectionUtil {
 			} else if (type == float.class || type == Float.class) {
 				return (Float) value;
 			} else if (type == boolean.class || type == Bool.class) {
-				if(value==null) {
-					return false;
-				}else {
-				return (boolean) value;}
+				return (boolean) value;
+
 			} else {
 				return value;
 			}
