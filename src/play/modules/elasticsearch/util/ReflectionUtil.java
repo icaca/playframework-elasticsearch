@@ -30,8 +30,6 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
-
 import play.Logger;
 import play.modules.elasticsearch.mapping.MappingUtil;
 
@@ -143,9 +141,8 @@ public abstract class ReflectionUtil {
 				return (Double) value;
 			} else if (type == float.class || type == Float.class) {
 				return (Float) value;
-			} else if (type == boolean.class || type == Bool.class) {
-				return (boolean) value;
-
+			} else if (type == boolean.class || type == Boolean.class) {
+				return Boolean.parseBoolean(value.toString());
 			} else {
 				return value;
 			}
