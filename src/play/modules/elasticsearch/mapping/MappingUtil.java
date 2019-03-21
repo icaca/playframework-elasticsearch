@@ -140,7 +140,7 @@ public abstract class MappingUtil {
 	public static String detectFieldType(Class<?> clazz) {
 		// Core types
 		if (String.class.isAssignableFrom(clazz)) {
-			return "string";
+			return "text";
 		} else if (Integer.class.isAssignableFrom(clazz) || int.class.isAssignableFrom(clazz)) {
 			return "integer";
 		} else if (Short.class.isAssignableFrom(clazz) || short.class.isAssignableFrom(clazz)) {
