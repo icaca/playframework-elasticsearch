@@ -4,7 +4,10 @@ import play.Logger;
 import play.Play;
 import play.modules.elasticsearch.ElasticSearchIndexEvent;
 import play.modules.elasticsearch.IndexEventHandler;
-
+import com.rabbitmq.client.AMQP.BasicProperties;
+import com.rabbitmq.client.Consumer;
+import com.rabbitmq.client.Envelope;
+import com.rabbitmq.client.ShutdownSignalException;
 /**
  * Handler which pushes events into a rabbitmq queue
  */
@@ -21,21 +24,21 @@ public class RabbitMQIndexEventHandler implements IndexEventHandler {
 		}
 		
 		// Exchange
-		akka.amqp.ExchangeType directExchange = akka.amqp.Direct.getInstance();
-		akka.amqp.AMQP.ExchangeParameters params = new akka.amqp.AMQP.ExchangeParameters(getQueue(), directExchange);
-		
-		// Producer
-		akka.amqp.AMQP.ProducerParameters producerParams = new akka.amqp.AMQP.ProducerParameters(params);
-		
-		// Connection
-		com.rabbitmq.client.Address address = new com.rabbitmq.client.Address(getHost(), getPort());
-		com.rabbitmq.client.Address[] addresses = {address};
-		akka.amqp.AMQP.ConnectionParameters connectionParameters = new akka.amqp.AMQP.ConnectionParameters(addresses, getUsername(), getPassword(), getVirtualHost());
-		akka.actor.ActorRef connection = akka.amqp.AMQP.newConnection(connectionParameters);
-		
-		// Send Event
-		akka.actor.ActorRef producer = akka.amqp.AMQP.newProducer(connection, producerParams);
-		producer.sendOneWay(event);
+//		akka.amqp.ExchangeType directExchange = akka.amqp.Direct.getInstance();
+//		akka.amqp.AMQP.ExchangeParameters params = new akka.amqp.AMQP.ExchangeParameters(getQueue(), directExchange);
+//		
+//		// Producer
+//		akka.amqp.AMQP.ProducerParameters producerParams = new akka.amqp.AMQP.ProducerParameters(params);
+//		
+//		// Connection
+//		com.rabbitmq.client.Address address = new com.rabbitmq.client.Address(getHost(), getPort());
+//		com.rabbitmq.client.Address[] addresses = {address};
+//		akka.amqp.AMQP.ConnectionParameters connectionParameters = new akka.amqp.AMQP.ConnectionParameters(addresses, getUsername(), getPassword(), getVirtualHost());
+//		akka.actor.ActorRef connection = akka.amqp.AMQP.newConnection(connectionParameters);
+//		
+//		// Send Event
+//		akka.actor.ActorRef producer = akka.amqp.AMQP.newProducer(connection, producerParams);
+//		producer.sendOneWay(event);
 	}
 	
 	/**
@@ -98,22 +101,22 @@ public class RabbitMQIndexEventHandler implements IndexEventHandler {
 	
 	private static void startConsumer() {
 		// TODO Finish RabbitMQ Integration
-		Logger.info("Triggering RabbitMQConsumer for Elastic Search...");
-		
-		// Exchange
-		akka.amqp.ExchangeType directExchange = akka.amqp.Direct.getInstance();
-		akka.amqp.AMQP.ExchangeParameters params = new akka.amqp.AMQP.ExchangeParameters(getQueue(), directExchange);
-		
-		// Consumer
-		com.rabbitmq.client.Address address = new com.rabbitmq.client.Address(getHost(), getPort());
-		com.rabbitmq.client.Address[] addresses = {address};
-		akka.amqp.AMQP.ConnectionParameters connectionParameters = new akka.amqp.AMQP.ConnectionParameters(addresses, getUsername(), getPassword(), getVirtualHost());
-		@SuppressWarnings("unused")
-		akka.actor.ActorRef connection = akka.amqp.AMQP.newConnection(connectionParameters);
-		
-		akka.actor.ActorRef ref = akka.actor.Actors.actorOf(RabbitMQConsumerActor.class);
-		akka.amqp.AMQP.ConsumerParameters consumerParams = new akka.amqp.AMQP.ConsumerParameters(getQueue(), ref, params);
-		akka.amqp.AMQP.newConsumer(ref, consumerParams);
+//		Logger.info("Triggering RabbitMQConsumer for Elastic Search...");
+//		
+//		// Exchange
+//		akka.amqp.ExchangeType directExchange = akka.amqp.Direct.getInstance();
+//		akka.amqp.AMQP.ExchangeParameters params = new akka.amqp.AMQP.ExchangeParameters(getQueue(), directExchange);
+//		
+//		// Consumer
+//		com.rabbitmq.client.Address address = new com.rabbitmq.client.Address(getHost(), getPort());
+//		com.rabbitmq.client.Address[] addresses = {address};
+//		akka.amqp.AMQP.ConnectionParameters connectionParameters = new akka.amqp.AMQP.ConnectionParameters(addresses, getUsername(), getPassword(), getVirtualHost());
+//		@SuppressWarnings("unused")
+//		akka.actor.ActorRef connection = akka.amqp.AMQP.newConnection(connectionParameters);
+//		
+//		akka.actor.ActorRef ref = akka.actor.Actors.actorOf(RabbitMQConsumerActor.class);
+//		akka.amqp.AMQP.ConsumerParameters consumerParams = new akka.amqp.AMQP.ConsumerParameters(getQueue(), ref, params);
+//		akka.amqp.AMQP.newConsumer(ref, consumerParams);
 	}
 
 }

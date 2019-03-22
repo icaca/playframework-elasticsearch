@@ -14,7 +14,7 @@ import play.modules.elasticsearch.mapping.FieldMapper;
 import play.modules.elasticsearch.mapping.MapperFactory;
 import play.modules.elasticsearch.mapping.MappingException;
 import play.modules.elasticsearch.util.ReflectionUtil;
-import scala.actors.threadpool.Arrays;
+import java.util.Arrays;
 
 /**
  * Field mapper for embedded objects
