@@ -104,8 +104,9 @@ public abstract class MappingUtil {
 					builder.startObject(name);
 				}
 				builder.field("type", type);
-				if("text".equals(type)) {
+				if ("text".equals(type)) {
 					builder.field("analyzer", "ik_max_word");
+					builder.field("index_options", "offsets");
 				}
 				if (fieldMeta != null) {
 					addIndexAndStoreInformation(builder, fieldMeta);
@@ -115,8 +116,9 @@ public abstract class MappingUtil {
 			builder.endObject();
 		} else {
 			builder.field("type", type);
-			if("text".equals(type)) {
+			if ("text".equals(type)) {
 				builder.field("analyzer", "ik_max_word");
+				builder.field("index_options", "offsets");
 			}
 			if (meta.hasField()) {
 				ElasticSearchField fieldMeta = meta.getField();
@@ -170,7 +172,7 @@ public abstract class MappingUtil {
 	}
 
 	public static Object convertValue(final Object value, final Class<?> targetType) {
-		Logger.debug("%s %s", targetType,value);
+		Logger.debug("%s %s", targetType, value);
 		if (targetType.equals(value.getClass())) {
 			// Types match
 			return value;

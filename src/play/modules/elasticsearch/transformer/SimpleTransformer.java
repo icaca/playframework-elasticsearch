@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 
 import play.Logger;
 import play.db.Model;
@@ -38,20 +39,16 @@ import play.modules.elasticsearch.util.ReflectionUtil;
  * This transformer only supports basic mappings, without nested collections or
  * models.
  * 
- * @param <T>
- *            the generic type
+ * @param <T> the generic type
  */
 public class SimpleTransformer<T extends Model> implements Transformer<T> {
 
 	/**
 	 * To search results.
 	 * 
-	 * @param <T>
-	 *            the generic type
-	 * @param searchResponse
-	 *            the search response
-	 * @param clazz
-	 *            the clazz
+	 * @param                <T> the generic type
+	 * @param searchResponse the search response
+	 * @param clazz          the clazz
 	 * @return the search results
 	 */
 	public SearchResults<T> toSearchResults(SearchResponse searchResponse, Class<T> clazz) {
@@ -60,11 +57,12 @@ public class SimpleTransformer<T extends Model> implements Transformer<T> {
 
 		// Init List
 		List<T> objects = new ArrayList<T>();
-        List<Float> scores = new ArrayList<Float>();
-        List<Object[]> sortValues = new ArrayList<Object[]>();
+		List<Float> scores = new ArrayList<Float>();
+		List<Object[]> sortValues = new ArrayList<Object[]>();
+//		List<String> highLights = new ArrayList<>();
 
-        // Loop on each one
-        Class<T> hitClazz = clazz;
+		// Loop on each one
+		Class<T> hitClazz = clazz;
 		for (SearchHit h : searchResponse.getHits()) {
 			// Init Model Class
 			Logger.debug("Starting Record!");
@@ -72,25 +70,33 @@ public class SimpleTransformer<T extends Model> implements Transformer<T> {
 				hitClazz = (Class<T>) ElasticSearchPlugin.lookupModel(h.getType());
 			}
 			T o = ReflectionUtil.newInstance(hitClazz);
-			 
-			
 
 			// Get Data Map
 			Map<String, Object> map = h.getSourceAsMap();
 			Logger.debug("Record Map: %s", map);
 
+			Map<String, HighlightField> hl = h.getHighlightFields();
+//			for (String key : hl.keySet()) {
+//				highLights.add(hl.get(key).getFragments()[0].toString());
+//
+//			}
+
 			// Bind Data
 			for (Map.Entry<String, Object> e : map.entrySet()) {
 				Logger.debug("%s %s %s", o, e.getKey(), e.getValue());
-				ReflectionUtil.setFieldValue(o, e.getKey(), e.getValue());
+				if (hl.keySet().contains((e.getKey()))) {
+					ReflectionUtil.setFieldValue(o, e.getKey(), hl.get(e.getKey()).getFragments()[0].toString());
+				} else {
+					ReflectionUtil.setFieldValue(o, e.getKey(), e.getValue());
+				}
 			}
 
 			// Log Debug
 			Logger.debug("Model Instance: %s", o);
 			objects.add(o);
-            scores.add(h.getScore());
-            sortValues.add(h.getRawSortValues());
-        }
+			scores.add(h.getScore());
+			sortValues.add(h.getRawSortValues());
+		}
 
 		// Return Results
 		return new SearchResults<T>(count, objects, scores, sortValues, searchResponse.getAggregations());

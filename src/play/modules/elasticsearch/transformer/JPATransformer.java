@@ -9,7 +9,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.common.text.Text;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 
 import play.Logger;
 import play.Play;
@@ -31,12 +33,9 @@ public class JPATransformer<T extends Model> implements Transformer<T> {
 	/**
 	 * To search results.
 	 * 
-	 * @param <T>
-	 *            the generic type
-	 * @param searchResponse
-	 *            the search response
-	 * @param clazz
-	 *            the clazz
+	 * @param                <T> the generic type
+	 * @param searchResponse the search response
+	 * @param clazz          the clazz
 	 * @return the search results
 	 */
 	@Override
@@ -52,6 +51,7 @@ public class JPATransformer<T extends Model> implements Transformer<T> {
 			factory = Model.Manager.factoryFor(hitClazz);
 			keyType = factory.keyType();
 		}
+		List<String> highLights = new ArrayList<>();
 
 		// Store object ids categorized by model
 		Map<Class<T>, List<Object>> allIds = new HashMap<Class<T>, List<Object>>();
@@ -89,12 +89,18 @@ public class JPATransformer<T extends Model> implements Transformer<T> {
 				}
 				modelOrder.put(id, counter++);
 
+//				Map<String, HighlightField> hl = h.getHighlightFields();
+//				for (String key : hl.keySet()) {
+//					highLights.add(hl.get(key).getFragments()[0].toString());
+//
+//				}
+//				Logger.debug("Record highlight: %s", hl);
+				
 				scores.add(h.getScore());
 				sortValues.add(h.getSortValues());
 
 			} catch (Exception e) {
-				throw new UnexpectedException(
-						"Could not convert the ID from index to corresponding type", e);
+				throw new UnexpectedException("Could not convert the ID from index to corresponding type", e);
 			}
 		}
 
@@ -114,8 +120,7 @@ public class JPATransformer<T extends Model> implements Transformer<T> {
 		// Make sure all items exist in the database
 		if (objects.size() != counter) {
 			if (shouldFailOnMissingObjects()) {
-				throw new IllegalStateException(
-						"Please re-index, not all indexed items are available in the database");
+				throw new IllegalStateException("Please re-index, not all indexed items are available in the database");
 			} else {
 				Logger.debug("Some Models not found in DB, continuing...");
 			}
@@ -134,15 +139,14 @@ public class JPATransformer<T extends Model> implements Transformer<T> {
 	/**
 	 * Load entities from database
 	 * 
-	 * @param <T>
+	 * @param       <T>
 	 * @param clazz
 	 * @param ids
 	 * @return
 	 */
 	private static <T extends Model> List<T> loadFromDb(Class<T> clazz, List<Object> ids) {
 		// JPA maps the "id" field to the key automatically
-		List<T> objects = JPQL.instance.find(clazz.getName(), "id in (?1)", new Object[] { ids })
-				.fetch();
+		List<T> objects = JPQL.instance.find(clazz.getName(), "id in (?1)", new Object[] { ids }).fetch();
 
 		return objects;
 	}
@@ -150,11 +154,12 @@ public class JPATransformer<T extends Model> implements Transformer<T> {
 	/**
 	 * Sort list of objects according to the order of their keys as defined by ids
 	 * 
-	 * @param <T>
+	 * @param         <T>
 	 * @param objects
 	 * @param ids
 	 */
-	private static <T extends Model> void sortByOrder(List<T> objects, final Map<Class<T>, Map<Object, Integer>> order) {
+	private static <T extends Model> void sortByOrder(List<T> objects,
+			final Map<Class<T>, Map<Object, Integer>> order) {
 		Collections.sort(objects, new Comparator<T>() {
 
 			@Override

@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 
 import play.Logger;
 import play.db.Model;
@@ -41,20 +42,16 @@ import play.modules.elasticsearch.search.SearchResults;
  * At some point (after enough testing) this should become the default
  * transformer.
  * 
- * @param <T>
- *            the generic type
+ * @param <T> the generic type
  */
 public class MapperTransformer<T extends Model> implements Transformer<T> {
 
 	/**
 	 * To search results.
 	 * 
-	 * @param <T>
-	 *            the generic type
-	 * @param searchResponse
-	 *            the search response
-	 * @param clazz
-	 *            the clazz
+	 * @param                <T> the generic type
+	 * @param searchResponse the search response
+	 * @param clazz          the clazz
 	 * @return the search results
 	 */
 	public SearchResults<T> toSearchResults(SearchResponse searchResponse, Class<T> clazz) {
@@ -63,21 +60,32 @@ public class MapperTransformer<T extends Model> implements Transformer<T> {
 
 		// Init List
 		List<T> objects = new ArrayList<T>();
-        List<Float> scores = new ArrayList<Float>();
-        List<Object[]> sortValues = new ArrayList<Object[]>();
-
-        Class<T> hitClazz = clazz;
-        ModelMapper<T> mapper = ElasticSearchPlugin.getMapper(hitClazz);
+		List<Float> scores = new ArrayList<Float>();
+		List<Object[]> sortValues = new ArrayList<Object[]>();
+		Class<T> hitClazz = clazz;
+		ModelMapper<T> mapper = ElasticSearchPlugin.getMapper(hitClazz);
 
 		// Loop on each one
 		for (SearchHit h : searchResponse.getHits()) {
 			if (clazz.equals(play.db.Model.class)) {
-				 hitClazz = (Class<T>) ElasticSearchPlugin.lookupModel(h.getType());
-				 mapper = ElasticSearchPlugin.getMapper(hitClazz);
+				hitClazz = (Class<T>) ElasticSearchPlugin.lookupModel(h.getType());
+				mapper = ElasticSearchPlugin.getMapper(hitClazz);
 			}
-			
+
 			// Get Data Map
+			Map<String, Object> source = h.getSourceAsMap();
+			Map<String, HighlightField> hl = h.getHighlightFields();
 			Map<String, Object> map = h.getSourceAsMap();
+
+			for (Map.Entry<String, Object> e : source.entrySet()) {
+
+				if (hl.keySet().contains(e.getKey())) {
+					map.put(e.getKey(), hl.get(e.getKey()).getFragments()[0].toString());
+				} else {
+					map.put(e.getKey(), e.getValue());
+				}
+			}
+
 			Logger.debug("Record Map: %s", map);
 
 			// Let mapper create models
@@ -86,9 +94,9 @@ public class MapperTransformer<T extends Model> implements Transformer<T> {
 			// Log Debug
 			Logger.debug("Model Instance: %s", o);
 			objects.add(o);
-            scores.add(h.getScore());
-            sortValues.add(h.getRawSortValues());
-        }
+			scores.add(h.getScore());
+			sortValues.add(h.getRawSortValues());
+		}
 
 		// Return Results
 		return new SearchResults<T>(count, objects, scores, sortValues, searchResponse.getAggregations());
