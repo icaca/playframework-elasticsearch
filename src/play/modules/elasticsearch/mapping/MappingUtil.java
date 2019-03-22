@@ -104,6 +104,9 @@ public abstract class MappingUtil {
 					builder.startObject(name);
 				}
 				builder.field("type", type);
+				if("text".equals(type)) {
+					builder.field("analyzer", "ik_max_word");
+				}
 				if (fieldMeta != null) {
 					addIndexAndStoreInformation(builder, fieldMeta);
 				}
@@ -112,6 +115,9 @@ public abstract class MappingUtil {
 			builder.endObject();
 		} else {
 			builder.field("type", type);
+			if("text".equals(type)) {
+				builder.field("analyzer", "ik_max_word");
+			}
 			if (meta.hasField()) {
 				ElasticSearchField fieldMeta = meta.getField();
 				addIndexAndStoreInformation(builder, fieldMeta);

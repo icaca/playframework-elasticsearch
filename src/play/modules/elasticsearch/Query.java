@@ -6,6 +6,7 @@ import java.util.List;
 import org.apache.commons.lang.Validate;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
@@ -177,7 +178,7 @@ public class Query<T extends Model> {
 		}
 
 		if (Logger.isDebugEnabled()) {
-			Logger.debug("ES Query: %s", builder.toString());
+			Logger.debug("ES Query: %s", Strings.toString(builder));
 		}
 		if (highLight != null) {
 			request.highlighter(highLight);
