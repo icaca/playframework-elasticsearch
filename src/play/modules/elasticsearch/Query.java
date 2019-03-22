@@ -8,7 +8,7 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
@@ -31,6 +31,7 @@ public class Query<T extends Model> {
 	private final QueryBuilder builder;
 	private final List<AggregationBuilder> aggrs;
 	private final List<SortBuilder> sorts;
+	private HighlightBuilder highLight = null;
 
 	private int from = -1;
 	private int size = -1;
@@ -136,6 +137,13 @@ public class Query<T extends Model> {
 		return this;
 	}
 
+	public Query<T> setHighlight(HighlightBuilder highlight) {
+		Validate.notNull(highlight, "highlight cannot be null");
+		this.highLight = highlight;
+
+		return this;
+	}
+
 	/**
 	 * Runs the query
 	 * 
@@ -170,6 +178,9 @@ public class Query<T extends Model> {
 
 		if (Logger.isDebugEnabled()) {
 			Logger.debug("ES Query: %s", builder.toString());
+		}
+		if (highLight != null) {
+			request.highlighter(highLight);
 		}
 
 		SearchResponse searchResponse = request.execute().actionGet();
