@@ -73,7 +73,7 @@ elasticsearch.local=true
 
 bc. # Option 2) Elastic Search (Client Model)
 elasticsearch.local=false
-elasticsearch.client=mynode1:9200,mynode2:9200
+elasticsearch.client=mynode1:9300,mynode2:9300
 
 
 h2. Usage
