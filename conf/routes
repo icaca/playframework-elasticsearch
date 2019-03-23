@@ -5,19 +5,7 @@
 #
 # ~~~~
 
-GET     /?                                      elasticsearch.ElasticSearchAdmin.index
-
-*       /admin/                                 module:crud
 GET     /public                                 staticDir:public
 
-#{elasticSearch.types}
-GET     /?                                      ${type.controllerClass.name.substring(12).replace('$','')}.index
-GET     /${type.controllerName}/search          ${type.controllerClass.name.substring(12).replace('$','')}.search
-POST    /${type.controllerName}/search          ${type.controllerClass.name.substring(12).replace('$','')}.search
-#{/elasticSearch.types}
-
-
-GET     /es-admin                               elasticsearch.ElasticSearchAdmin.index
-GET     /es-admin/                              elasticsearch.ElasticSearchAdmin.index
 
 *       /{controller}/{action}                  {controller}.{action}

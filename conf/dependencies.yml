@@ -4,15 +4,6 @@ self: play -> elasticsearch 0.6.4
 
 require:
     - play
-    - play -> crud
     - org.elasticsearch -> elasticsearch 6.6.2
     - org.elasticsearch.client -> transport 6.6.2
     - com.rabbitmq -> amqp-client 3.6.6
-
-    
-repositories:
-    - akka:
-        type: iBiblio
-        root: "https://repo.akka.io/releases/"
-        contains:
-            - se.scalablesolutions.akka -> *
