@@ -1,20 +1,38 @@
 package play.modules.elasticsearch.rabbitmq;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.Consumer;
+
 import play.Logger;
 import play.Play;
 import play.modules.elasticsearch.ElasticSearchIndexEvent;
 import play.modules.elasticsearch.IndexEventHandler;
-import com.rabbitmq.client.AMQP.BasicProperties;
-import com.rabbitmq.client.Consumer;
-import com.rabbitmq.client.Envelope;
-import com.rabbitmq.client.ShutdownSignalException;
+
 /**
  * Handler which pushes events into a rabbitmq queue
  */
 public class RabbitMQIndexEventHandler implements IndexEventHandler {
-	
+
 	/** Flag that indicates if the consumer has been started */
 	private static boolean consumerStarted = false;
+	protected static Channel channel;
+	protected static Connection connection;
+	protected static Consumer consumer;
+	protected static ConnectionFactory factory;
+//	protected String queueName;
+
+	public static byte[] serialize(Object obj) throws IOException {
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		ObjectOutputStream os = new ObjectOutputStream(out);
+		os.writeObject(obj);
+		return out.toByteArray();
+	}
 
 	@Override
 	public void handle(ElasticSearchIndexEvent event) {
@@ -22,7 +40,14 @@ public class RabbitMQIndexEventHandler implements IndexEventHandler {
 			startConsumer();
 			consumerStarted = true;
 		}
-		
+		try {
+
+			channel.basicPublish("", getQueue(), null, serialize(event));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 		// Exchange
 //		akka.amqp.ExchangeType directExchange = akka.amqp.Direct.getInstance();
 //		akka.amqp.AMQP.ExchangeParameters params = new akka.amqp.AMQP.ExchangeParameters(getQueue(), directExchange);
@@ -40,7 +65,7 @@ public class RabbitMQIndexEventHandler implements IndexEventHandler {
 //		akka.actor.ActorRef producer = akka.amqp.AMQP.newProducer(connection, producerParams);
 //		producer.sendOneWay(event);
 	}
-	
+
 	/**
 	 * Gets the queue.
 	 * 
@@ -53,7 +78,7 @@ public class RabbitMQIndexEventHandler implements IndexEventHandler {
 		}
 		return s;
 	}
-	
+
 	/**
 	 * Gets the host.
 	 * 
@@ -62,7 +87,7 @@ public class RabbitMQIndexEventHandler implements IndexEventHandler {
 	private static String getHost() {
 		return Play.configuration.getProperty("elasticsearch.rabbitmq.host");
 	}
-	
+
 	/**
 	 * Gets the port.
 	 * 
@@ -71,7 +96,7 @@ public class RabbitMQIndexEventHandler implements IndexEventHandler {
 	private static Integer getPort() {
 		return Integer.valueOf(Play.configuration.getProperty("elasticsearch.rabbitmq.port"));
 	}
-	
+
 	/**
 	 * Gets the username.
 	 * 
@@ -80,7 +105,7 @@ public class RabbitMQIndexEventHandler implements IndexEventHandler {
 	private static String getUsername() {
 		return Play.configuration.getProperty("elasticsearch.rabbitmq.username");
 	}
-	
+
 	/**
 	 * Gets the password.
 	 * 
@@ -89,7 +114,7 @@ public class RabbitMQIndexEventHandler implements IndexEventHandler {
 	private static String getPassword() {
 		return Play.configuration.getProperty("elasticsearch.rabbitmq.password");
 	}
-	
+
 	/**
 	 * Gets the virtualhost.
 	 * 
@@ -98,10 +123,35 @@ public class RabbitMQIndexEventHandler implements IndexEventHandler {
 	private static String getVirtualHost() {
 		return Play.configuration.getProperty("elasticsearch.rabbitmq.virtualHost");
 	}
-	
+
 	private static void startConsumer() {
 		// TODO Finish RabbitMQ Integration
-//		Logger.info("Triggering RabbitMQConsumer for Elastic Search...");
+		Logger.info("Triggering RabbitMQConsumer for Elastic Search...");
+
+		factory = new ConnectionFactory();
+		factory.setHost(getHost());
+		factory.setPort(getPort());
+		factory.setAutomaticRecoveryEnabled(true);
+
+		factory.setUsername(getUsername());
+		factory.setPassword(getPassword());
+		factory.setVirtualHost(getVirtualHost());
+
+		try {
+			connection = factory.newConnection();
+
+			// 创建频道
+			channel = connection.createChannel();
+			// 声明创建队列
+			channel.queueDeclare(getQueue(), false, false, false, null);
+			consumer = new RabbitMQConsumerActor();
+			channel.basicConsume(getQueue(), consumer);
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+
+		}
+
 //		
 //		// Exchange
 //		akka.amqp.ExchangeType directExchange = akka.amqp.Direct.getInstance();

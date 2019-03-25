@@ -18,13 +18,14 @@
  */
 package play.modules.elasticsearch;
 
+import java.io.Serializable;
+
 import play.db.Model;
 
 /**
  * The Class ElasticSearchIndexEvent.
  */
-public class ElasticSearchIndexEvent {
-
+public class ElasticSearchIndexEvent implements Serializable {
 	/** The object. */
 	private Model object;
 
@@ -34,10 +35,8 @@ public class ElasticSearchIndexEvent {
 	/**
 	 * Instantiates a new elastic search index event.
 	 * 
-	 * @param object
-	 *            the object
-	 * @param type
-	 *            the type
+	 * @param object the object
+	 * @param type   the type
 	 */
 	public ElasticSearchIndexEvent(Model object, Type type) {
 		super();
