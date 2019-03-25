@@ -238,6 +238,9 @@ public abstract class MappingUtil {
 			if (value instanceof Long) {
 				date = new Date(((Long) value).longValue());
 
+			} else if (value instanceof Integer) {
+				date = new Date(((Integer) value).longValue());
+
 			} else if (value instanceof String) {
 				String val = (String) value;
 				int dateLength = String.valueOf(Long.MAX_VALUE).length();

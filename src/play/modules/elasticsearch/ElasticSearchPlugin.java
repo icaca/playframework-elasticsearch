@@ -51,7 +51,7 @@ import play.modules.elasticsearch.util.ExceptionUtil;
 import play.modules.elasticsearch.util.ReflectionUtil;
 import play.mvc.Router;
 
-// TODO: Auto-generated Javadoc
+// 
 /**
  * The Class ElasticSearchPlugin.
  */
