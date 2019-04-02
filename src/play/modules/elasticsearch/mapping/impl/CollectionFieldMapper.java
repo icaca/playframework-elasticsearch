@@ -55,7 +55,7 @@ public class CollectionFieldMapper<M> extends AbstractFieldMapper<M> {
 		} else {
 			fields = null;
 		}
-		
+
 	}
 
 	private Class<?> getCollectionType() {
@@ -116,7 +116,7 @@ public class CollectionFieldMapper<M> extends AbstractFieldMapper<M> {
 			}
 
 			builder.endArray();
-			Logger.debug("addToMapping %s", Strings.toString(builder));
+			// Logger.info("addToMapping %s", Strings.toString(builder));
 
 		}
 	}

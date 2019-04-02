@@ -157,6 +157,8 @@ public abstract class ElasticSearchAdapter {
 			// Log Debug
 			Logger.debug("Index Response: %s", response);
 
+		} catch (Exception e) {
+			e.printStackTrace();
 		} finally {
 			if (contentBuilder != null) {
 				contentBuilder.close();
