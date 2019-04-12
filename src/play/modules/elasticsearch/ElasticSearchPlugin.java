@@ -152,6 +152,8 @@ public class ElasticSearchPlugin extends PlayPlugin {
 		return ElasticSearchDeliveryMode.valueOf(s.toUpperCase());
 	}
 
+	static boolean isStoped = false;
+
 	/**
 	 * This method is called when the application starts - It will start ES instance
 	 * 
@@ -178,7 +180,7 @@ public class ElasticSearchPlugin extends PlayPlugin {
 		// Import anything from play configuration that starts with
 		// elasticsearch.native.
 		final Enumeration<Object> keys = Play.configuration.keys();
-		while (keys.hasMoreElements()) {
+		while (keys.hasMoreElements() && !isStoped) {
 			final String key = (String) keys.nextElement();
 			if (key.startsWith("elasticsearch.native.")) {
 				final String nativeKey = key.replaceFirst("elasticsearch.native.", "");
@@ -236,6 +238,11 @@ public class ElasticSearchPlugin extends PlayPlugin {
 			throw new RuntimeException(
 					"Elastic Search Client cannot be null - please check the configuration provided and the health of your Elastic Search instances.");
 		}
+	}
+
+	@Override
+	public void onApplicationStop() {
+		isStoped = true;
 	}
 
 	@SuppressWarnings("unchecked")
