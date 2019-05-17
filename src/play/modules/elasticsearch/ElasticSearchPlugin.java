@@ -162,6 +162,7 @@ public class ElasticSearchPlugin extends PlayPlugin {
 	@Override
 	public void onApplicationStart() {
 		// (re-)set caches
+		isStoped = false;
 		mappers = new ConcurrentHashMap<Class<?>, ModelMapper<?>>();
 		modelLookup = new ConcurrentHashMap<String, Class<?>>();
 		indicesStarted = Collections.newSetFromMap(new ConcurrentHashMap<Class<?>, Boolean>());
