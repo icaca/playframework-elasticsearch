@@ -56,6 +56,7 @@ import play.mvc.Router;
  * The Class ElasticSearchPlugin.
  */
 public class ElasticSearchPlugin extends PlayPlugin {
+	private static boolean isStoped = false;
 
 	/** The started. */
 	private static boolean started = false;
@@ -91,6 +92,16 @@ public class ElasticSearchPlugin extends PlayPlugin {
 		mappers.clear();
 	}
 
+	/**
+	 * 是否启动es
+	 * 
+	 * @return
+	 */
+	public static boolean isEsEnabled() {
+		return Play.configuration.getProperty("elasticsearch.status", "disabled").equals("enabled");
+	}
+	
+	
 	/**
 	 * Checks if is local mode.
 	 * 
@@ -152,8 +163,6 @@ public class ElasticSearchPlugin extends PlayPlugin {
 		return ElasticSearchDeliveryMode.valueOf(s.toUpperCase());
 	}
 
-	static boolean isStoped = false;
-
 	/**
 	 * This method is called when the application starts - It will start ES instance
 	 * 
@@ -162,6 +171,8 @@ public class ElasticSearchPlugin extends PlayPlugin {
 	@Override
 	public void onApplicationStart() {
 		// (re-)set caches
+	Logger.info("isEsEnabled %s", isEsEnabled());
+		if(!isEsEnabled()) {
 		isStoped = false;
 		mappers = new ConcurrentHashMap<Class<?>, ModelMapper<?>>();
 		modelLookup = new ConcurrentHashMap<String, Class<?>>();
@@ -239,8 +250,9 @@ public class ElasticSearchPlugin extends PlayPlugin {
 			throw new RuntimeException(
 					"Elastic Search Client cannot be null - please check the configuration provided and the health of your Elastic Search instances.");
 		}
+		}
 	}
-
+	
 	@Override
 	public void onApplicationStop() {
 		isStoped = true;
@@ -285,7 +297,10 @@ public class ElasticSearchPlugin extends PlayPlugin {
 	public void onEvent(final String message, final Object context) {
 		// Log Debug
 //		Logger.debug("Received %s Event, Object: %s", message, context);
-
+       
+		if(!isEsEnabled()) {
+			return;
+		}
 		if (isInterestingEvent(message) == false) {
 			return;
 		}
